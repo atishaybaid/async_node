@@ -10,43 +10,54 @@ function spider(url,callback){
             console.log("requested file already exists");
             callback(null,fileName,false);
         } else{
-            request(url,(err,res,body)=>{
-                if(err){
-                   callback(err); 
-
-                } else{
-                    //save to file
-                    mkdirp(fileName,(err)=>{
-                        if(err){
-                             callback(err);
-                             
-                        } else{
-                            var dirPath = fileName + '/' + fileName;
-                            fs.writeFile(dirPath,body,(err)=>{
-                                if(err){
-                                     console.log("error ocurred at writing to file",err); 
-                                    //callback(err); 
-
-                                } else{
-                                     callback(null,fileName,true); 
-                                }
-                            })
-                        }
-                    })
-                }
-                
+            downloadUrl(url,fileName,(err,fileName,NewCreated)=>{
+                callback(null,fileName,NewCreated);
             })
 
         }
 
     })
 
-//chk if url is already present
-
-
 }
 
 
+function downloadUrl(url,fileName,callback){
+    request(url,(err,res,body)=>{
+        if(err){
+            return callback(err); 
+
+        } 
+        //save to file
+        
+        saveFile(fileName,body,(err,fileName,NewCreated)=>{
+            if(err){
+            return callback(err)
+            }
+             callback(null,fileName,NewCreated);
+
+        });     
+    })
+}
+
+
+function saveFile(fileName,contents,callback){
+    mkdirp(fileName,(err)=>{
+        if(err){
+            return callback(err);
+                                 
+            } 
+        var filePath = fileName + '/index.html';
+        fs.writeFile(filePath,contents,(err)=>{
+            if(err){
+                return callback(err); 
+            } 
+            callback(null,fileName,true); 
+                                    
+        })
+                            
+     })
+                   
+}
 
 spider(process.argv[2],(err,fileName,downloaded)=>{
     if(err){
